@@ -39,31 +39,38 @@ async function run() {
       const brandArray = req.query.brand;
       const brands = brandArray.split(',');
 
-      if (filter.trim() == false) {
-        console.log('filter empty');
+      let query;
+      if (filter.length > 0) {
+        query = {
+          $and: [{ productName: { $regex: new RegExp(filter, 'i') } }, { discountPrice: { $gte: from, $lte: to } }],
+        };
       } else {
-        console.log('filter not empty');
       }
-      const query = {
-        discountPrice: { $gte: from, $lte: to },
-        // $and: [
-        //   {
-        //     productName: { $regex: new RegExp(filter, 'i') },
-        //   },
-        //   {
 
-        //   },
-        // ],
+      //   query = {
+      //     productName: { $regex: new RegExp(filter, 'i') },
+      //   };
 
-        // $and: [
-        //   {
-        //     brandName: { $in: brands },
-        //   },
-        //   {
-        //     discountPrice: { $gte: from, $lte: to },
-        //   },
-        // ],
-      };
+      //   query = {
+      //     discountPrice: { $gte: from, $lte: to },
+      //     // $and: [
+      //     //   {
+      //     //     productName: { $regex: new RegExp(filter, 'i') },
+      //     //   },
+      //     //   {
+
+      //     //   },
+      //     // ],
+
+      //     // $and: [
+      //     //   {
+      //     //     brandName: { $in: brands },
+      //     //   },
+      //     //   {
+      //     //     discountPrice: { $gte: from, $lte: to },
+      //     //   },
+      //     // ],
+      //   };
       let option;
       if (order.trim() == 'low') {
         option = {
