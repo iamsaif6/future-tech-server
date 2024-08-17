@@ -29,7 +29,13 @@ async function run() {
     const productCollections = client.db('future-tech').collection('productCollections');
 
     app.get('/products', async (req, res) => {
-      const result = await productCollections.find().toArray();
+      const page = parseInt(req.query.page);
+      const items = parseInt(req.query.items);
+      const result = await productCollections
+        .find()
+        .skip(page * items)
+        .limit(items)
+        .toArray();
       res.send(result);
     });
 
