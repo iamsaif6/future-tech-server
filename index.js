@@ -45,6 +45,9 @@ async function run() {
           $and: [{ productName: { $regex: new RegExp(filter, 'i') } }, { discountPrice: { $gte: from, $lte: to } }],
         };
       } else {
+        query = {
+          discountPrice: { $gte: from, $lte: to },
+        };
       }
 
       //   query = {
