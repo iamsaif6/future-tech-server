@@ -29,10 +29,18 @@ async function run() {
     const productCollections = client.db('future-tech').collection('productCollections');
 
     app.get('/products', async (req, res) => {
-      const page = parseInt(req.query.page);
+      const page = parseInt(req.query.page) - 1;
       const items = parseInt(req.query.items);
+      const filter = req.query.filter;
+
+      console.log(req.query);
+
+      const query = {
+        productName: { $regex: new RegExp(filter, 'i') },
+      };
+
       const result = await productCollections
-        .find()
+        .find(query)
         .skip(page * items)
         .limit(items)
         .toArray();
