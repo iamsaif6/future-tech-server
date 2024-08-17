@@ -39,6 +39,8 @@ async function run() {
       const brandArray = req.query.brand;
       const brands = brandArray.split(',');
 
+      console.log(brands == '');
+
       let query;
 
       //Search text and price range
