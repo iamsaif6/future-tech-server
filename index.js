@@ -1,3 +1,4 @@
+'use strict';
 const express = require('express');
 const app = express();
 require('dotenv').config();
@@ -32,18 +33,70 @@ async function run() {
       const page = parseInt(req.query.page) - 1;
       const items = parseInt(req.query.items);
       const filter = req.query.filter;
+      const order = req.query.order;
+      const from = parseInt(req.query.from);
+      const to = parseInt(req.query.to);
+      const brandArray = req.query.brand;
+      const brands = brandArray.split(',');
 
-      console.log(req.query);
-
+      if (filter.trim() == false) {
+        console.log('filter empty');
+      } else {
+        console.log('filter not empty');
+      }
       const query = {
-        productName: { $regex: new RegExp(filter, 'i') },
+        discountPrice: { $gte: from, $lte: to },
+        // $and: [
+        //   {
+        //     productName: { $regex: new RegExp(filter, 'i') },
+        //   },
+        //   {
+
+        //   },
+        // ],
+
+        // $and: [
+        //   {
+        //     brandName: { $in: brands },
+        //   },
+        //   {
+        //     discountPrice: { $gte: from, $lte: to },
+        //   },
+        // ],
       };
+      let option;
+      if (order.trim() == 'low') {
+        option = {
+          sort: {
+            discountPrice: 1,
+          },
+        };
+      } else if (order.trim() == 'high') {
+        option = {
+          sort: {
+            discountPrice: -1,
+          },
+        };
+      } else if (order.trim() == 'date') {
+        option = {
+          sort: {
+            productCreationDateTime: -1,
+          },
+        };
+      } else {
+        option = {
+          sort: {
+            _id: 1,
+          },
+        };
+      }
 
       const result = await productCollections
-        .find(query)
+        .find(query, option)
         .skip(page * items)
         .limit(items)
         .toArray();
+
       res.send(result);
     });
 
