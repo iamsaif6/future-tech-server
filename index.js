@@ -40,11 +40,14 @@ async function run() {
       const brands = brandArray.split(',');
 
       let query;
+
+      //Search text and price range
       if (filter.length > 0) {
         query = {
           $and: [{ productName: { $regex: new RegExp(filter, 'i') } }, { discountPrice: { $gte: from, $lte: to } }],
         };
       } else {
+        // This will apply if there is no price range
         query = {
           discountPrice: { $gte: from, $lte: to },
         };
@@ -74,6 +77,8 @@ async function run() {
       //     //   },
       //     // ],
       //   };
+
+      //Sort by date , price
       let option;
       if (order.trim() == 'low') {
         option = {
