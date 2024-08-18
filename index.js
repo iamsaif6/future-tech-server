@@ -30,7 +30,7 @@ async function run() {
     const productCollections = client.db('future-tech').collection('productCollections');
 
     app.get('/products', async (req, res) => {
-      const page = parseInt(req.query.page) - 1;
+      const page = parseInt(req.query.page) > 0 ? parseInt(req.query.page) - 1 : parseInt(req.query.page);
       const items = parseInt(req.query.items);
       const filter = req.query.filter;
       const order = req.query.order?.trim();
@@ -56,7 +56,11 @@ async function run() {
         .limit(items)
         .toArray();
 
-      res.send(result);
+      // Total item count
+      const totalItem = await productCollections.find(query, option).toArray();
+      const total = totalItem.length;
+
+      res.send({ result, total });
     });
 
     // Send a ping to confirm a successful connection
@@ -75,22 +79,18 @@ function constructQuery(filter, from, to, brands, category) {
   if (filter.length > 0) {
     query.productName = { $regex: new RegExp(filter, 'i') };
   }
-
   //   if price range available
   if (from || to) {
     query.discountPrice = { $gte: from, $lte: to };
   }
-
   //   if brand name is available
   if (brands != false) {
     query.brandName = { $in: brands };
   }
-
   //if category available
   if (category != false) {
     query.category = { $in: category };
   }
-
   return query;
 }
 
@@ -102,7 +102,6 @@ function constructOption(order) {
     case 'low':
       option.sort = { discountPrice: 1 };
       break;
-
     case 'high':
       option.sort = { discountPrice: -1 };
       break;
