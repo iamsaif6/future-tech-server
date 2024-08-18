@@ -33,80 +33,22 @@ async function run() {
       const page = parseInt(req.query.page) - 1;
       const items = parseInt(req.query.items);
       const filter = req.query.filter;
-      const order = req.query.order;
+      const order = req.query.order?.trim();
       const from = parseInt(req.query.from);
       const to = parseInt(req.query.to);
       const brandArray = req.query.brand;
-      const brands = brandArray.split(',');
+      const brands = brandArray?.split(',');
+      const categoryArray = req.query.category;
+      const category = categoryArray?.split(',');
 
-      console.log(brands == '');
-
-      let query;
-
-      //Search text and price range
-      if (filter.length > 0) {
-        query = {
-          $and: [{ productName: { $regex: new RegExp(filter, 'i') } }, { discountPrice: { $gte: from, $lte: to } }],
-        };
-      } else {
-        // This will apply if there is no price range
-        query = {
-          discountPrice: { $gte: from, $lte: to },
-        };
+      // If nothing avaible
+      if (!page && !items && !filter && !order && !from && !to && !brands) {
+        console.log('No request');
+        return res.status(400).send({ message: 'Invalid Request' });
       }
 
-      //   query = {
-      //     productName: { $regex: new RegExp(filter, 'i') },
-      //   };
-
-      //   query = {
-      //     discountPrice: { $gte: from, $lte: to },
-      //     // $and: [
-      //     //   {
-      //     //     productName: { $regex: new RegExp(filter, 'i') },
-      //     //   },
-      //     //   {
-
-      //     //   },
-      //     // ],
-
-      //     // $and: [
-      //     //   {
-      //     //     brandName: { $in: brands },
-      //     //   },
-      //     //   {
-      //     //     discountPrice: { $gte: from, $lte: to },
-      //     //   },
-      //     // ],
-      //   };
-
-      //Sort by date , price
-      let option;
-      if (order.trim() == 'low') {
-        option = {
-          sort: {
-            discountPrice: 1,
-          },
-        };
-      } else if (order.trim() == 'high') {
-        option = {
-          sort: {
-            discountPrice: -1,
-          },
-        };
-      } else if (order.trim() == 'date') {
-        option = {
-          sort: {
-            productCreationDateTime: -1,
-          },
-        };
-      } else {
-        option = {
-          sort: {
-            _id: 1,
-          },
-        };
-      }
+      const query = constructQuery(filter, from, to, brands, category);
+      const option = constructOption(order);
 
       const result = await productCollections
         .find(query, option)
@@ -125,6 +67,55 @@ async function run() {
     // await client.close();
   }
 }
+
+// Function for reuturn the query
+function constructQuery(filter, from, to, brands, category) {
+  const query = {};
+  // if filter is available
+  if (filter.length > 0) {
+    query.productName = { $regex: new RegExp(filter, 'i') };
+  }
+
+  //   if price range available
+  if (from || to) {
+    query.discountPrice = { $gte: from, $lte: to };
+  }
+
+  //   if brand name is available
+  if (brands != false) {
+    query.brandName = { $in: brands };
+  }
+
+  //if category available
+  if (category != false) {
+    query.category = { $in: category };
+  }
+
+  return query;
+}
+
+// Functions for Product orderlist (low / high / date)
+function constructOption(order) {
+  const option = {};
+
+  switch (order) {
+    case 'low':
+      option.sort = { discountPrice: 1 };
+      break;
+
+    case 'high':
+      option.sort = { discountPrice: -1 };
+      break;
+    case 'date':
+      option.sort = { productCreationDateTime: -1 };
+      break;
+    default:
+      option.sort = { _id: 1 };
+  }
+
+  return option;
+}
+
 run().catch(console.dir);
 
 app.get('/', (req, res) => {
